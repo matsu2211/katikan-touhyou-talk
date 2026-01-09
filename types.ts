@@ -25,6 +25,6 @@ export interface GameState {
   currentPlayerIndex: number;
   targetPlayerIndex?: number; // Only for 'guess' mode
   isCompleted: boolean;
-  aiInsight: string | null;
+
   playerNames: string[];
 }

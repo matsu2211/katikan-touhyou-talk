@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { ValueTheme, UserRank, GameState, PlayerVote, GameMode } from './types';
 import { VALUE_THEMES } from './constants';
-import { geminiService } from './services/geminiService';
+
 import { 
   Trophy, 
   RotateCcw, 
@@ -49,7 +49,6 @@ const App: React.FC = () => {
   });
 
   const [editingPlayerIndex, setEditingPlayerIndex] = useState<number | null>(null);
-  const [isLoadingInsight, setIsLoadingInsight] = useState(false);
   const [isSetupMode, setIsSetupMode] = useState(true);
   const [allPlayerRanks, setAllPlayerRanks] = useState<UserRank[]>([]);
   const [showCopyFeedback, setShowCopyFeedback] = useState(false);
@@ -164,7 +163,6 @@ const App: React.FC = () => {
   };
 
   const handleFinalSubmit = async () => {
-    setIsLoadingInsight(true);
     
     if (gameState.mode === 'guess') {
       const targetName = gameState.playerNames[gameState.targetPlayerIndex || 0];
@@ -176,13 +174,6 @@ const App: React.FC = () => {
         isCompleted: true 
       }));
 
-      const insight = await geminiService.generateGuessInsight(
-        gameState.currentTheme!.title,
-        targetName,
-        [targetRanks.rank1!, targetRanks.rank2!, targetRanks.rank3!],
-        [groupGuess.rank1!, groupGuess.rank2!, groupGuess.rank3!]
-      );
-      setGameState(prev => ({ ...prev, aiInsight: insight }));
     } else {
       const finalVotes: PlayerVote[] = gameState.playerNames.map((name, idx) => ({
         playerName: name,
@@ -191,11 +182,8 @@ const App: React.FC = () => {
 
       setGameState(prev => ({ ...prev, votes: finalVotes, isCompleted: true }));
       
-      const insight = await geminiService.generateGroupInsight(gameState.currentTheme!.title, finalVotes);
-      setGameState(prev => ({ ...prev, aiInsight: insight }));
     }
     
-    setIsLoadingInsight(false);
   };
 
   const aggregateResults = useMemo(() => {
@@ -369,10 +357,9 @@ const App: React.FC = () => {
               <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center mb-6 ring-8 ring-purple-100/50">
                 <EyeOff size={48} className="text-purple-500" />
               </div>
-              <h3 className="text-2xl font-black text-gray-800 mb-2">{targetName}さん<ruby>以外<rt>いがい</rt></ruby>は見ないで！</h3>
+              <h3 className="text-2xl font-black text-gray-800 mb-2">{targetName}さん入力タイム</h3>
               <p className="text-gray-500 font-bold leading-relaxed">
-                デバイスを{targetName}さんに<ruby>渡<rt>わた</rt></ruby>してください。<br/>
-                {targetName}さんは<ruby>自分<rt>じぶん</rt></ruby>の<ruby>価値観<rt>かちかん</rt></ruby>TOP3を<ruby>秘密<rt>ひみつ</rt></ruby>に<ruby>入力<rt>にゅうりょく</rt></ruby>します。
+                {targetName}さんは<ruby>自分<rt>じぶん</rt></ruby>の<ruby>価値観<rt>かちかん</rt></ruby>TOP3を教えてください。
               </p>
             </div>
 
@@ -482,7 +469,7 @@ const App: React.FC = () => {
                       <span className="text-xs font-mono opacity-30">{getAlphabet(i)}</span>
                       <RubyDisplay text={item} />
                     </span>
-                    {isSelected && <span className="w-6 h-6 bg-purple-500 text-white rounded-lg flex items-center justify-center text-xs font-black">{rank}<ruby>位予想<rt>いよそう</rt></ruby></span>}
+                    {isSelected && <span className="w-6 h-6 bg-purple-500 text-white rounded-lg flex items-center justify-center text-xs font-black">{rank}</span>}
                   </button>
                 );
               })}
@@ -520,6 +507,7 @@ const App: React.FC = () => {
                 <h2 className="text-3xl font-black text-gray-800 leading-tight">
                   <RubyDisplay text={gameState.currentTheme?.title} />
                 </h2>
+                <p className="text-gray-500 font-medium mt-2">自分のTOP3はどれ？　回答例：BDA</p>
               </div>
               <button 
                 onClick={copyThemeToClipboard}
@@ -789,39 +777,7 @@ const App: React.FC = () => {
             )}
           </div>
 
-          <div className={`${gameState.mode === 'guess' ? 'bg-purple-600' : 'bg-orange-500'} rounded-[3rem] p-10 shadow-2xl relative overflow-hidden text-white`}>
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <MessageCircle size={140} />
-            </div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
-                  <Sparkles size={20} />
-                </div>
-                <h4 className="font-black text-2xl tracking-tight">AIの<ruby>視点<rt>してん</rt></ruby></h4>
-              </div>
 
-              {isLoadingInsight ? (
-                <div className="flex flex-col items-center py-12 space-y-4">
-                  <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <p className="font-black animate-pulse tracking-widest text-xs uppercase opacity-70">Analyzing values...</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <p className="text-xl font-bold leading-relaxed text-white/90">
-                    {gameState.aiInsight?.split('\n\n💡')[0]}
-                  </p>
-                  <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/10">
-                    <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-2">Conversation Starter</p>
-                    <p className="text-lg font-black italic leading-tight">
-                      「{gameState.aiInsight?.split('\n\n💡')[1]?.replace('💡', '').trim()}」
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
 
           <button 
             onClick={startNewGame} 
