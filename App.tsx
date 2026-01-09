@@ -22,7 +22,12 @@ import {
   Lock,
   Heart,
   Copy,
-  Check
+  Check,
+  Home,
+  Timer,
+  Play,
+  Pause,
+  Clock
 } from 'lucide-react';
 
 // Rubyが含まれるテキストを安全に描画するためのコンポーネント
@@ -34,13 +39,13 @@ const RubyDisplay: React.FC<{ text: string | null | undefined }> = ({ text }) =>
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
     currentTheme: null,
-    mode: 'single',
+    mode: 'view',
     votes: [],
     currentPlayerIndex: 0,
     targetPlayerIndex: 0,
     isCompleted: false,
     aiInsight: null,
-    playerNames: ['あなた'],
+    playerNames: [],
   });
 
   const [editingPlayerIndex, setEditingPlayerIndex] = useState<number | null>(null);
@@ -52,6 +57,9 @@ const App: React.FC = () => {
   // For Guessing Mode: Step tracking (0: Target Input, 1: Group Guess)
   const [guessStep, setGuessStep] = useState<0 | 1>(0);
   const [groupGuess, setGroupGuess] = useState<UserRank>({ rank1: null, rank2: null, rank3: null });
+  const [timerMinutes, setTimerMinutes] = useState(1);
+  const [timer, setTimer] = useState(timerMinutes * 60);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
 
   const getAlphabet = (index: number) => String.fromCharCode(65 + index);
 
@@ -66,7 +74,7 @@ const App: React.FC = () => {
     if (!gameState.currentTheme) return;
     
     const cleanTitle = stripHtml(gameState.currentTheme.title);
-    const cleanItems = gameState.currentTheme.items.map((item, i) => `${i + 1}. ${stripHtml(item)}`).join('\n');
+    const cleanItems = gameState.currentTheme.items.map((item, i) => `${getAlphabet(i)}. ${stripHtml(item)}`).join('\n');
     const textToCopy = `【お題】${cleanTitle}\n\n【選択肢】\n${cleanItems}`;
     
     navigator.clipboard.writeText(textToCopy).then(() => {
@@ -95,6 +103,12 @@ const App: React.FC = () => {
     setEditingPlayerIndex(null);
   }, [gameState.playerNames]);
 
+  const changeTheme = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * VALUE_THEMES.length);
+    const newTheme = VALUE_THEMES[randomIndex];
+    setGameState(prev => ({ ...prev, currentTheme: newTheme }));
+  }, []);
+
   useEffect(() => {
     setAllPlayerRanks(gameState.playerNames.map(() => ({ rank1: null, rank2: null, rank3: null })));
   }, [gameState.playerNames]);
@@ -103,6 +117,27 @@ const App: React.FC = () => {
     const randomIndex = Math.floor(Math.random() * VALUE_THEMES.length);
     setGameState(prev => ({ ...prev, currentTheme: VALUE_THEMES[randomIndex] }));
   }, []);
+
+  useEffect(() => {
+    if (gameState.mode === 'guess' && guessStep === 1 && isTimerRunning) {
+      const interval = setInterval(() => {
+        setTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setIsTimerRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [gameState.mode, guessStep, isTimerRunning]);
+
+  useEffect(() => {
+    setIsTimerRunning(false);
+    setTimer(timerMinutes * 60);
+  }, [guessStep]);
 
   const toggleSelection = (playerIdx: number, item: string) => {
     const newRanks = [...allPlayerRanks];
@@ -156,9 +191,7 @@ const App: React.FC = () => {
 
       setGameState(prev => ({ ...prev, votes: finalVotes, isCompleted: true }));
       
-      const insight = gameState.mode === 'single' 
-        ? await geminiService.generateValueInsight(gameState.currentTheme!.title, [allPlayerRanks[0].rank1!, allPlayerRanks[0].rank2!, allPlayerRanks[0].rank3!])
-        : await geminiService.generateGroupInsight(gameState.currentTheme!.title, finalVotes);
+      const insight = await geminiService.generateGroupInsight(gameState.currentTheme!.title, finalVotes);
       setGameState(prev => ({ ...prev, aiInsight: insight }));
     }
     
@@ -201,18 +234,18 @@ const App: React.FC = () => {
         <div className="bg-white rounded-[2.5rem] shadow-xl p-8 border border-white/50 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button 
-              onClick={() => setGameState(prev => ({ ...prev, mode: 'single', playerNames: ['あなた'] }))}
-              className={`p-6 rounded-3xl border-4 transition-all flex flex-col items-center gap-3 ${gameState.mode === 'single' ? 'border-orange-400 bg-orange-50' : 'border-gray-50 bg-gray-50/30'}`}
-            >
-              <User size={28} className={gameState.mode === 'single' ? 'text-orange-500' : 'text-gray-300'} />
-              <span className="font-black text-sm text-gray-700"><ruby>一人<rt>ひとり</rt></ruby>で<ruby>遊<rt>あそ</rt></ruby>ぶ</span>
-            </button>
-            <button 
               onClick={() => setGameState(prev => ({ ...prev, mode: 'group', playerNames: ['プレイヤー1', 'プレイヤー2'] }))}
               className={`p-6 rounded-3xl border-4 transition-all flex flex-col items-center gap-3 ${gameState.mode === 'group' ? 'border-orange-400 bg-orange-50' : 'border-gray-50 bg-gray-50/30'}`}
             >
               <Users size={28} className={gameState.mode === 'group' ? 'text-orange-500' : 'text-gray-300'} />
               <span className="font-black text-sm text-gray-700">みんなでトーク</span>
+            </button>
+            <button 
+              onClick={() => setGameState(prev => ({ ...prev, mode: 'view' }))}
+              className={`p-6 rounded-3xl border-4 transition-all flex flex-col items-center gap-3 ${gameState.mode === 'view' ? 'border-sky-400 bg-sky-50' : 'border-gray-50 bg-gray-50/30'}`}
+            >
+              <Eye size={28} className={gameState.mode === 'view' ? 'text-sky-500' : 'text-gray-300'} />
+              <span className="font-black text-sm text-gray-700">ながめる</span>
             </button>
             <button 
               onClick={() => setGameState(prev => ({ ...prev, mode: 'guess', playerNames: ['プレイヤー1', 'プレイヤー2'], targetPlayerIndex: 0 }))}
@@ -223,65 +256,69 @@ const App: React.FC = () => {
             </button>
           </div>
 
-          <div className="space-y-4">
-            <label className="text-sm font-black text-gray-400 uppercase tracking-widest block ml-2">メンバー<ruby>登録<rt>とうろく</rt></ruby></label>
-            <div className="space-y-3">
-              {gameState.playerNames.map((name, idx) => (
-                <div key={idx} className="flex gap-2 group">
-                  <div className="flex-1 relative">
-                    <input 
-                      type="text" 
-                      value={name}
-                      onChange={(e) => {
-                        const newNames = [...gameState.playerNames];
-                        newNames[idx] = e.target.value;
-                        setGameState(p => ({ ...p, playerNames: newNames }));
-                      }}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-orange-300 focus:bg-white transition-all outline-none font-bold text-gray-700"
-                      placeholder={`なまえをにゅうりょく...`}
-                    />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
-                      {gameState.mode === 'guess' && gameState.targetPlayerIndex === idx ? (
-                        <Trophy size={20} className="text-purple-500" />
-                      ) : (
-                        <UserCheck className="text-gray-300" size={20} />
+          {gameState.mode !== 'view' && (
+            <div className="space-y-4">
+              <label className="text-sm font-black text-gray-400 uppercase tracking-widest block ml-2">メンバー<ruby>登録<rt>とうろく</rt></ruby></label>
+              <div className="space-y-3">
+                {gameState.playerNames.map((name, idx) => (
+                  <div key={idx} className="flex gap-2 group">
+                    <div className="flex-1 relative">
+                      <input 
+                        type="text" 
+                        value={name}
+                        onChange={(e) => {
+                          const newNames = [...gameState.playerNames];
+                          newNames[idx] = e.target.value;
+                          setGameState(p => ({ ...p, playerNames: newNames }));
+                        }}
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-orange-300 focus:bg-white transition-all outline-none font-bold text-gray-700"
+                        placeholder={`なまえをにゅうりょく...`}
+                      />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
+                        {gameState.mode === 'guess' && gameState.targetPlayerIndex === idx ? (
+                          <Trophy size={20} className="text-purple-500" />
+                        ) : (
+                          <UserCheck className="text-gray-300" size={20} />
+                        )}
+                      </div>
+                      {gameState.mode === 'guess' && (
+                        <button 
+                          onClick={() => setGameState(p => ({ ...p, targetPlayerIndex: idx }))}
+                          className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black px-2 py-1 rounded-md ${gameState.targetPlayerIndex === idx ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'}`}
+                        >
+                          {gameState.targetPlayerIndex === idx ? 'あてられるひと' : 'こうたい'}
+                        </button>
                       )}
                     </div>
-                    {gameState.mode === 'guess' && (
+                    {gameState.playerNames.length > 2 && (
                       <button 
-                        onClick={() => setGameState(p => ({ ...p, targetPlayerIndex: idx }))}
-                        className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black px-2 py-1 rounded-md ${gameState.targetPlayerIndex === idx ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'}`}
+                        onClick={() => setGameState(p => ({ ...p, playerNames: p.playerNames.filter((_, i) => i !== idx), targetPlayerIndex: 0 }))} 
+                        className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-50 text-red-300 hover:bg-red-500 hover:text-white transition-all"
                       >
-                        {gameState.targetPlayerIndex === idx ? 'あてられるひと' : 'こうたい'}
+                        ×
                       </button>
                     )}
                   </div>
-                  {gameState.playerNames.length > (gameState.mode === 'single' ? 1 : 2) && (
-                    <button 
-                      onClick={() => setGameState(p => ({ ...p, playerNames: p.playerNames.filter((_, i) => i !== idx), targetPlayerIndex: 0 }))} 
-                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-50 text-red-300 hover:bg-red-500 hover:text-white transition-all"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            {gameState.mode !== 'single' && (
+                ))}
+              </div>
               <button onClick={() => setGameState(p => ({ ...p, playerNames: [...p.playerNames, `プレイヤー${p.playerNames.length + 1}`] }))} className="w-full py-4 border-4 border-dashed border-gray-100 rounded-3xl text-gray-400 font-bold hover:bg-gray-50 flex items-center justify-center gap-2 transition-all">
                 <Plus size={20} /> プレイヤーを<ruby>追加<rt>ついか</rt></ruby>
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           <button 
             onClick={() => {
               setIsSetupMode(false);
               setAllPlayerRanks(gameState.playerNames.map(() => ({ rank1: null, rank2: null, rank3: null })));
             }}
-            className={`w-full py-6 text-white rounded-[2rem] font-black text-2xl shadow-xl transition-all flex items-center justify-center gap-3 ${gameState.mode === 'guess' ? 'bg-purple-600 shadow-purple-100 hover:bg-purple-700' : 'bg-orange-500 shadow-orange-100 hover:bg-orange-600'}`}
+            className={`w-full py-6 text-white rounded-[2rem] font-black text-2xl shadow-xl transition-all flex items-center justify-center gap-3 ${
+              gameState.mode === 'view' ? 'bg-sky-500 shadow-sky-100 hover:bg-sky-600' :
+              gameState.mode === 'guess' ? 'bg-purple-600 shadow-purple-100 hover:bg-purple-700' : 
+              'bg-orange-500 shadow-orange-100 hover:bg-orange-600'
+            }`}
           >
-            スタート！
+            {gameState.mode === 'view' ? 'お題をながめる' : 'スタート！'}
             <PlayCircle size={28} />
           </button>
         </div>
@@ -296,6 +333,9 @@ const App: React.FC = () => {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
         <header className="bg-white rounded-[2rem] p-8 shadow-lg border border-white/50 relative overflow-hidden mb-6">
+          <button onClick={startNewGame} className="absolute top-4 left-4 p-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-all z-20">
+            <Home size={20} />
+          </button>
           <div className="absolute top-0 right-0 p-10 opacity-5 -mr-10 -mt-10">
             <Search size={160} className="text-purple-500" />
           </div>
@@ -306,12 +346,20 @@ const App: React.FC = () => {
                 <RubyDisplay text={gameState.currentTheme?.title} />
               </h2>
             </div>
-            <button 
-              onClick={copyThemeToClipboard}
-              className={`p-3 rounded-2xl transition-all border-2 ${showCopyFeedback ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200 hover:text-purple-500 shadow-sm'}`}
-            >
-              {showCopyFeedback ? <Check size={20} /> : <Copy size={20} />}
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={changeTheme}
+                className="p-3 rounded-2xl transition-all border-2 bg-white border-gray-100 text-gray-400 hover:border-purple-200 hover:text-purple-500 shadow-sm"
+              >
+                <RotateCcw size={20} />
+              </button>
+              <button 
+                onClick={copyThemeToClipboard}
+                className={`p-3 rounded-2xl transition-all border-2 ${showCopyFeedback ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200 hover:text-purple-500 shadow-sm'}`}
+              >
+                {showCopyFeedback ? <Check size={20} /> : <Copy size={20} />}
+              </button>
+            </div>
           </div>
         </header>
 
@@ -367,9 +415,53 @@ const App: React.FC = () => {
               </div>
               <h3 className="text-2xl font-black text-gray-800 mb-2">みんなで<ruby>予想<rt>よそう</rt></ruby>タイム！</h3>
               <p className="text-gray-500 font-bold leading-relaxed">
-                {targetName}さんは<ruby>何<rt>なに</rt></ruby>を<ruby>選<rt>えら</rt></ruby>んだでしょうか？<br/>
-                みんなで<ruby>相談<rt>そうだん</rt></ruby>して、TOP3を<ruby>予想<rt>よそう</rt></ruby>して<ruby>入力<rt>にゅうりょく</rt></ruby>してください。
+                {targetName}さんは<ruby>何<rt>なに</rt></ruby>を<ruby>選<rt>えら</rt></ruby>んだでしょうか？
               </p>
+            </div>
+
+            <h4 className="text-xl font-black text-gray-800 mb-4"><RubyDisplay text={gameState.currentTheme?.title} /></h4>
+
+            <div className="bg-gray-100 rounded-3xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <label htmlFor="timer-minutes" className="text-sm font-bold text-gray-500">時間（分）:</label>
+                <input 
+                  id="timer-minutes"
+                  type="number" 
+                  min="1"
+                  value={timerMinutes} 
+                  onChange={(e) => {
+                    const newMinutes = parseInt(e.target.value, 10);
+                    if (newMinutes > 0) {
+                      setTimerMinutes(newMinutes);
+                      setTimer(newMinutes * 60);
+                      setIsTimerRunning(false);
+                    }
+                  }} 
+                  className="w-16 p-2 font-bold text-center rounded-lg border-2 bg-white/50"
+                  disabled={isTimerRunning}
+                />
+              </div>
+              <div className={`text-3xl font-mono font-black ${timer > 10 || timer === 0 ? 'text-gray-700' : 'text-red-500 animate-pulse'}`}>
+                {`${Math.floor(timer / 60).toString().padStart(2, '0')}:${(timer % 60).toString().padStart(2, '0')}`}
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setIsTimerRunning(!isTimerRunning)} 
+                  className="p-3 rounded-xl bg-white shadow-md text-gray-700"
+                  disabled={timer === 0}
+                >
+                  {isTimerRunning ? <Pause size={20} /> : <Play size={20} />}
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsTimerRunning(false);
+                    setTimer(timerMinutes * 60);
+                  }}
+                  className="p-3 rounded-xl bg-white shadow-md text-gray-700"
+                >
+                  <RotateCcw size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="bg-gray-50 p-6 rounded-3xl space-y-3">
@@ -380,7 +472,11 @@ const App: React.FC = () => {
                   <button 
                     key={i}
                     onClick={() => toggleGuessSelection(item)}
-                    className={`w-full p-4 rounded-2xl text-left font-bold border-2 transition-all flex items-center justify-between ${isSelected ? 'border-purple-400 bg-purple-100 text-purple-900' : 'border-white bg-white text-gray-400'}`}
+                    disabled={timer === 0}
+                    className={`w-full p-4 rounded-2xl text-left font-bold border-2 transition-all flex items-center justify-between ${
+                      timer === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                      isSelected ? 'border-purple-400 bg-purple-100 text-purple-900' : 'border-white bg-white text-gray-400'
+                    }`}
                   >
                     <span className="flex items-center gap-3">
                       <span className="text-xs font-mono opacity-30">{getAlphabet(i)}</span>
@@ -406,12 +502,71 @@ const App: React.FC = () => {
     );
   }
 
+  // --- VIEW MODE RENDER ---
+  if (gameState.mode === 'view') {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
+        <div className="space-y-6">
+          <header className="bg-white rounded-[2rem] p-8 shadow-lg border border-white/50 relative overflow-hidden">
+            <button onClick={startNewGame} className="absolute top-4 left-4 p-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-all z-20">
+              <Home size={20} />
+            </button>
+            <div className="absolute top-0 right-0 p-10 opacity-5 -mr-10 -mt-10">
+              <Eye size={160} className="text-sky-500" />
+            </div>
+            <div className="flex justify-between items-start relative z-10">
+              <div>
+                <span className="inline-block px-4 py-1 bg-sky-100 text-sky-600 rounded-full text-xs font-black uppercase tracking-widest mb-3">View Mode</span>
+                <h2 className="text-3xl font-black text-gray-800 leading-tight">
+                  <RubyDisplay text={gameState.currentTheme?.title} />
+                </h2>
+              </div>
+              <button 
+                onClick={copyThemeToClipboard}
+                className={`p-3 rounded-2xl transition-all border-2 ${showCopyFeedback ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-400 hover:border-sky-200 hover:text-sky-500 shadow-sm'}`}
+              >
+                {showCopyFeedback ? <Check size={20} /> : <Copy size={20} />}
+              </button>
+            </div>
+          </header>
+          
+          <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border-4 border-sky-100/50 space-y-3">
+              {gameState.currentTheme?.items.map((item, i) => (
+                  <div key={i} className="w-full p-4 rounded-2xl text-left font-bold border-2 bg-gray-50/60 text-gray-700 flex items-center gap-3">
+                      <span className="text-xs font-mono opacity-30">{getAlphabet(i)}</span>
+                      <RubyDisplay text={item} />
+                  </div>
+              ))}
+          </div>
+
+          <div className="pt-8 flex justify-center">
+            <button 
+              onClick={changeTheme} 
+              className="w-full py-7 bg-white text-gray-900 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 hover:bg-gray-50 transition-all border-b-8 border-gray-200 active:border-b-0 active:translate-y-1"
+            >
+              <ruby>別<rt>べつ</rt></ruby>のテーマで<ruby>遊<rt>あそ</rt></ruby>ぶ
+              <RotateCcw size={28} />
+            </button>
+          </div>
+        </div>
+        <footer className="mt-16 text-center">
+            <p className="text-gray-300 text-[10px] font-black uppercase tracking-[0.5em]">
+              &copy; 2024 YURUTTO KACHIKAN TALK • Gemini Powered
+            </p>
+        </footer>
+      </div>
+    );
+  }
+
   // --- STANDARD GAME RENDER (SINGLE/GROUP) ---
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
       {!gameState.isCompleted ? (
         <div className="space-y-6">
           <header className="bg-white rounded-[2rem] p-8 shadow-lg border border-white/50 relative overflow-hidden">
+            <button onClick={startNewGame} className="absolute top-4 left-4 p-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-all z-20">
+              <Home size={20} />
+            </button>
             <div className="absolute top-0 right-0 p-10 opacity-5 -mr-10 -mt-10">
               <Sparkles size={160} />
             </div>
@@ -422,12 +577,20 @@ const App: React.FC = () => {
                   <RubyDisplay text={gameState.currentTheme?.title} />
                 </h2>
               </div>
-              <button 
-                onClick={copyThemeToClipboard}
-                className={`p-3 rounded-2xl transition-all border-2 ${showCopyFeedback ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500 shadow-sm'}`}
-              >
-                {showCopyFeedback ? <Check size={20} /> : <Copy size={20} />}
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={changeTheme}
+                  className="p-3 rounded-2xl transition-all border-2 bg-white border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500 shadow-sm"
+                >
+                  <RotateCcw size={20} />
+                </button>
+                <button 
+                  onClick={copyThemeToClipboard}
+                  className={`p-3 rounded-2xl transition-all border-2 ${showCopyFeedback ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500 shadow-sm'}`}
+                >
+                  {showCopyFeedback ? <Check size={20} /> : <Copy size={20} />}
+                </button>
+              </div>
             </div>
           </header>
 
@@ -538,6 +701,9 @@ const App: React.FC = () => {
       ) : (
         <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
           <div className="bg-white rounded-[3rem] shadow-2xl p-10 border border-white/50 relative overflow-hidden">
+            <button onClick={startNewGame} className="absolute top-4 left-4 p-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-all z-20">
+              <Home size={20} />
+            </button>
              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-400"></div>
             
             <div className="flex flex-col items-center mb-12">

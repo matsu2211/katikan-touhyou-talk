@@ -16,7 +16,7 @@ export interface PlayerVote {
   ranks: UserRank;
 }
 
-export type GameMode = 'single' | 'group' | 'guess';
+export type GameMode = 'group' | 'guess' | 'view';
 
 export interface GameState {
   currentTheme: ValueTheme | null;
