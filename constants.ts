@@ -105,6 +105,16 @@ export const VALUE_THEMES: ValueTheme[] = [
   {
     id: 'strengths',
     title: '<ruby>自分<rt>じぶん</rt></ruby>の<ruby>長所<rt>ちょうしょ</rt></ruby>だと<ruby>思<rt>おも</rt></ruby>う<ruby>点<rt>てん</rt></ruby>は？',
-    items: ['<ruby>気難<rt>きむずか</rt></ruby>しそうな<ruby>人<rt>ひと</rt></ruby>の<ruby>懐<rt>ふところ</rt></ruby>に<ruby>入<rt>い</rt></ruby>れる', 'ユーモアを<ruby>言<rt>い</rt></ruby>える', '<ruby>寝<rt>ね</rt></ruby>たら<ruby>大体<rt>だいたい</rt></ruby>のことは<ruby>忘<rt>わす</rt></ruby>れる', '<ruby>予定<rt>よてい</rt></ruby>を<ruby>詰<rt>つ</rt></ruby>め<ruby>込<rt>こ</rt></ruby>んでも<ruby>疲<rt>つか</rt></ruby>れない', '<ruby>誰<rt>だれ</rt></ruby>にでも<ruby>優<rt>やさ</rt></ruby>しく<ruby>寄<rt>よ</rt></ruby>り<ruby>添<rt>そ</rt></ruby>える', 'お<ruby>菓子<rt>かし</rt></ruby>のセンスが<ruby>抜群<rt>ばつぐん</rt></ruby>', '<ruby>考<rt>かんが</rt></ruby>えを<ruby>言語化<rt>げんごか</rt></ruby>するのが<ruby>得意<rt>とくい</rt></ruby>']
+    items: ['<ruby>気難<rt>きむずか</rt></ruby>しそうな<ruby>人<rt>ひと</rt></ruby>の<ruby>懐<rt>ふところ</rt></ruby>に<ruby>入<rt>い</rt></ruby>れる', 'ユーモアを<ruby>言<rt>い</rt></ruby>える', '<ruby>寝<rt>ね</rt></ruby>たら<ruby>大体<rt>だいたい</rt></ruby>のことは<ruby>忘<rt>わす</rt></ruby>れる', '<ruby>予定<rt>よてい</rt></ruby>を<ruby>詰<rt>つ</rt></ruby>め<ruby>込<rt>こ</rt></ruby>んでも<ruby>疲<rt>つか</rt></ruby>れない', '<ruby>誰<rt>だれ</rt></ruby>にでも<ruby>優<rt>やさ</rt></ruby>しく<ruby>寄<rt>よ</rt></ruby>り<ruby>添<rt>そ</rt></rt>える', 'お<ruby>菓子<rt>かし</rt></ruby>のセンスが<ruby>抜群<rt>ばつぐん</rt></ruby>', '<ruby>考<rt>かんが</rt></ruby>えを<ruby>言語化<rt>げんごか</rt></ruby>するのが<ruby>得意<rt>とくい</rt></ruby>']
+  },
+  {
+    id: 'game-genre',
+    title: '<ruby>得意<rt>とくい</rt></ruby>・<ruby>好<rt>す</rt></ruby>きなゲームジャンル',
+    items: ['アクション', 'RPG', '<ruby>格闘<rt>かくとう</rt></ruby>', '<ruby>育成<rt>いくせい</rt></ruby>・シミュレーション<ruby>系<rt>けい</rt></ruby>', 'シューティング', 'リズム・音ゲー', 'パズル系']
+  },
+  {
+    id: 'disliked-game-genre',
+    title: '<ruby>苦手<rt>にがて</rt></ruby>なゲームジャンル',
+    items: ['アクション', 'RPG', '<ruby>格闘<rt>かくとう</rt></ruby>', '<ruby>育成<rt>いくせい</rt></ruby>・シミュレーション<ruby>系<rt>けい</rt></ruby>', 'シューティング', 'リズム・音ゲー', 'パズル系']
   }
 ];
