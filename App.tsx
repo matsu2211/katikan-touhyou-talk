@@ -139,6 +139,20 @@ const App: React.FC = () => {
     setEditingPlayerIndex(null);
   }, [gameState.playerNames]);
 
+  const goToNextTheme = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * VALUE_THEMES.length);
+    const newTheme = VALUE_THEMES[randomIndex];
+    setGameState(prev => ({
+      ...prev,
+      currentTheme: newTheme,
+      votes: [],
+      isCompleted: false,
+      aiInsight: null,
+    }));
+    setAllPlayerRanks(gameState.playerNames.map(() => ({ rank1: null, rank2: null, rank3: null })));
+    setEditingPlayerIndex(null);
+  }, [gameState.playerNames]);
+
   const changeTheme = useCallback(() => {
     const randomIndex = Math.floor(Math.random() * VALUE_THEMES.length);
     const newTheme = VALUE_THEMES[randomIndex];
@@ -872,13 +886,32 @@ const App: React.FC = () => {
 
 
 
-            <button 
-              onClick={startNewGame} 
-              className="w-full py-7 bg-white text-gray-900 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 hover:bg-gray-50 transition-all border-b-8 border-gray-200 active:border-b-0 active:translate-y-1"
-            >
-              <ruby>別<rt>べつ</rt></ruby>のテーマで<ruby>遊<rt>あそ</rt></ruby>ぶ
-              <RotateCcw size={28} />
-            </button>
+            {gameState.mode === 'group' ? (
+              <div className="flex flex-col md:flex-row gap-4">
+                <button
+                  onClick={startNewGame}
+                  className="flex-1 py-6 bg-gray-100 text-gray-700 rounded-[2rem] font-black text-xl shadow-md flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
+                >
+                  ホームに<ruby>戻<rt>もど</rt></ruby>る
+                  <Home size={24} />
+                </button>
+                <button
+                  onClick={goToNextTheme}
+                  className="flex-[2] py-6 bg-orange-500 text-white rounded-[2rem] font-black text-xl shadow-xl shadow-orange-100 flex items-center justify-center gap-3 hover:bg-orange-600 transition-all"
+                >
+                  <ruby>次<rt>つぎ</rt></ruby>のお<ruby>題<rt>だい</rt></ruby>へ
+                  <ArrowRight size={24} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={startNewGame}
+                className="w-full py-7 bg-white text-gray-900 rounded-[2.5rem] font-black text-2xl shadow-xl flex items-center justify-center gap-4 hover:bg-gray-50 transition-all border-b-8 border-gray-200 active:border-b-0 active:translate-y-1"
+              >
+                <ruby>別<rt>べつ</rt></ruby>のテーマで<ruby>遊<rt>あそ</rt></ruby>ぶ
+                <RotateCcw size={28} />
+              </button>
+            )}
           </div>
         )}
 

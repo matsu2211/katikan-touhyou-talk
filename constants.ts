@@ -116,5 +116,45 @@ export const VALUE_THEMES: ValueTheme[] = [
     id: 'disliked-game-genre',
     title: '<ruby>苦手<rt>にがて</rt></ruby>なゲームジャンル',
     items: ['アクション', 'RPG', '<ruby>格闘<rt>かくとう</rt></ruby>', '<ruby>育成<rt>いくせい</rt></ruby>・シミュレーション<ruby>系<rt>けい</rt></ruby>', 'シューティング', 'リズム・音ゲー', 'パズル系']
+  },
+  {
+    id: 'bbq-items',
+    title: 'バーベキューで<ruby>肉<rt>にく</rt></ruby><ruby>以外<rt>いがい</rt></ruby>に<ruby>焼<rt>や</rt></ruby>きたいのは？',
+    items: ['じゃがいも', 'しいたけ', 'マシュマロ', 'ほたて', '<ruby>焼<rt>や</rt></ruby>きそば', 'カマンベールチーズ', 'ポップコーン']
+  },
+  {
+    id: 'movie-catchphrases',
+    title: '<ruby>観<rt>み</rt></ruby>たくなる<ruby>映画<rt>えいが</rt></ruby>のキャッチコピーは？',
+    items: ['<ruby>衝撃<rt>しょうげき</rt></ruby>のラスト13<ruby>分<rt>ぷん</rt></ruby>', '<ruby>今年<rt>ことし</rt></ruby><ruby>最高<rt>さいこう</rt></ruby>の<ruby>感動<rt>かんどう</rt></ruby>をあなたに', '<ruby>映像<rt>えいぞう</rt></ruby><ruby>不可能<rt>ふかのう</rt></ruby>と<ruby>言<rt>い</rt></ruby>われた<ruby>作品<rt>さくひん</rt></ruby>がスクリーンへ', 'アカデミー<ruby>賞<rt>しょう</rt></ruby><ruby>最<rt>さい</rt></ruby><ruby>有力<rt>ゆうりょく</rt></ruby><ruby>候補<rt>こうほ</rt></ruby>！', 'あなたは<ruby>必<rt>かなら</rt></ruby>ず、２<ruby>回<rt>かい</rt></ruby><ruby>観<rt>み</rt></ruby>ることになる', '<ruby>手<rt>て</rt></ruby>に<ruby>汗<rt>あせ</rt></ruby>にぎりっ<ruby>放<rt>ぱな</rt></ruby>しの２<ruby>時間<rt>じかん</rt></ruby>！', '<ruby>抱腹絶倒<rt>ほうふくぜっとう</rt></ruby>！<ruby>爆笑<rt>ばくしょう</rt></ruby><ruby>必至<rt>ひっし</rt></ruby>！']
+  },
+  {
+    id: 'one-hundred-million-cost',
+    title: '１<ruby>億<rt>おく</rt></ruby><ruby>円<rt>えん</rt></ruby>をもらえる<ruby>代償<rt>だいしょう</rt></ruby>として<ruby>許<rt>ゆる</rt></ruby>せるのは？',
+    items: ['<ruby>一生<rt>いっしょう</rt></ruby>、<ruby>常温<rt>じょうおん</rt></ruby>の<ruby>飲<rt>の</rt></ruby>み<ruby>物<rt>もの</rt></ruby>しか<ruby>飲<rt>の</rt></ruby>めない', '<ruby>一生<rt>いっしょう</rt></ruby>、<ruby>車<rt>くるま</rt></ruby>に<ruby>乗<rt>の</rt></ruby>れない', '<ruby>一生<rt>いっしょう</rt></ruby>、<ruby>公園<rt>こうえん</rt></ruby>に<ruby>入<rt>はい</rt></ruby>れない', '<ruby>一生<rt>いっしょう</rt></ruby>、3ヶ<ruby>月<rt>げつ</rt></ruby>ごとに<ruby>引越<rt>ひっこ</rt></ruby>し', '<ruby>一生<rt>いっしょう</rt></ruby>、<ruby>夜<rt>よる</rt></ruby>１２<ruby>時<rt>じ</rt></ruby>に<ruby>眠<rt>ねむ</rt></ruby>らなければいけない', '<ruby>一生<rt>いっしょう</rt></ruby>、<ruby>同<rt>おな</rt></ruby>じ<ruby>色<rt>いろ</rt></ruby>の<ruby>服<rt>ふく</rt></ruby>しか<ruby>着<rt>き</rt></ruby>られない', '<ruby>一生<rt>いっしょう</rt></ruby>、<ruby>季節<rt>きせつ</rt></ruby>イベントに<ruby>参加<rt>さんか</rt></ruby>できない']
+  },
+  {
+    id: 'reincarnation',
+    title: '<ruby>生<rt>う</rt></ruby>まれ<ruby>変<rt>か</rt></ruby>わったら<ruby>何<rt>なに</rt></ruby>になりたい？',
+    items: ['IQ200の<ruby>持<rt>も</rt></ruby>ち<ruby>主<rt>ぬし</rt></ruby>', 'お<ruby>金持<rt>かねも</rt></ruby>ちに<ruby>飼<rt>か</rt></ruby>われているネコ', 'くじら', '<ruby>国民<rt>こくみん</rt></ruby><ruby>的<rt>てき</rt></ruby>アイドル', '<ruby>渡<rt>わた</rt></ruby>り<ruby>鳥<rt>どり</rt></ruby>', '<ruby>総理<rt>そうり</rt></ruby><ruby>大臣<rt>だいじん</rt></ruby>', '<ruby>天才<rt>てんさい</rt></ruby>スポーツ<ruby>選手<rt>せんしゅ</rt></ruby>']
+  },
+  {
+    id: 'travel-activities',
+    title: '<ruby>旅行<rt>りょこう</rt></ruby>でやりたいことは？',
+    items: ['ラフティング（<ruby>川下<rt>かわくだ</rt></ruby>り）', '<ruby>牛<rt>うし</rt></ruby>の<ruby>乳<rt>ちち</rt></ruby>しぼり<ruby>体験<rt>たいけん</rt></ruby>', 'いちご<ruby>狩<rt>が</rt></ruby>り', '<ruby>陶芸<rt>とうげい</rt></ruby><ruby>体験<rt>たいけん</rt></ruby>', '<ruby>蕎麦<rt>そば</rt></ruby>づくり<ruby>体験<rt>たいけん</rt></ruby>', '<ruby>雪山<rt>ゆきやま</rt></ruby>の<ruby>犬<rt>いぬ</rt></ruby>ぞり<ruby>体験<rt>たいけん</rt></ruby>', 'バンジージャンプ']
+  },
+  {
+    id: 'clickable-video-titles',
+    title: '<ruby>再生<rt>さいせい</rt></ruby>したくなる<ruby>動画<rt>どうが</rt></ruby>のタイトルは？',
+    items: ['【<ruby>車中泊<rt>しゃちゅうはく</rt></ruby>】<ruby>燻製<rt>くんせい</rt></ruby>ステーキを<ruby>一人<rt>ひとり</rt></ruby>で<ruby>食<rt>た</rt></ruby>べます', '<ruby>漫画<rt>まんが</rt></ruby>のストーリー・<ruby>伏線<rt>ふくせん</rt></ruby>を<ruby>完全<rt>かんぜん</rt></ruby><ruby>解説<rt>かいせつ</rt></ruby>', '<ruby>猫<rt>ねこ</rt></ruby>だらけの<ruby>島<rt>しま</rt></ruby>たっぷり３<ruby>時間<rt>じかん</rt></ruby>', '<ruby>海外<rt>かいがい</rt></ruby>の<ruby>面白<rt>おもしろ</rt></ruby>すぎるドッキリ', '３ヶ<ruby>月<rt>げつ</rt></ruby><ruby>海外<rt>かいがい</rt></ruby>ドラマを<ruby>見<rt>み</rt></ruby>て<ruby>英語<rt>えいご</rt></ruby>ペラペラになった', '【<ruby>閲覧<rt>えつらん</rt></ruby><ruby>注意<rt>ちゅうい</rt></ruby>】<ruby>廃病院<rt>はいびょういん</rt></ruby>の<ruby>監視<rt>かんし</rt></ruby>カメラが<ruby>捉<rt>とら</rt></ruby>えた<ruby>衝撃<rt>しょうげき</rt></ruby><ruby>映像<rt>えいぞう</rt></ruby>']
+  },
+  {
+    id: 'gaming-priorities',
+    title: '<ruby>人<rt>ひと</rt></ruby>とゲームをするとき<ruby>何<rt>なに</rt></ruby>を<ruby>重視<rt>じゅうし</rt></ruby>する？',
+    items: ['<ruby>他<rt>ほか</rt></ruby>をよせつけない<ruby>圧倒的<rt>あっとうてき</rt></ruby>な<ruby>勝利<rt>しょうり</rt></ruby>', '<ruby>心理戦<rt>しんりせん</rt></ruby>のかけひき', '<ruby>自分<rt>じぶん</rt></ruby>なりの<ruby>必勝法<rt>ひっしょうほう</rt></ruby>を<ruby>考<rt>かんが</rt></ruby>えて<ruby>試<rt>ため</rt></ruby>す', '<ruby>新<rt>あたら</rt></ruby>しい<ruby>面白<rt>おもしろ</rt></ruby>さを<ruby>発見<rt>はっけん</rt></ruby>する', '<ruby>勝<rt>か</rt></ruby>ち<ruby>負<rt>ま</rt></ruby>けより<ruby>全員<rt>ぜんいん</rt></ruby>で<ruby>楽<rt>たの</rt></ruby>しみたい', 'やればやるほどハマる<ruby>奥深<rt>おくふか</rt></ruby>さ', 'ゲームした<ruby>後<rt>あと</rt></ruby>の<ruby>感想<rt>かんそう</rt></ruby>で<ruby>盛<rt>も</rt></ruby>り<ruby>上<rt>あ</rt></ruby>がる']
+  },
+  {
+    id: 'next-year-goals',
+    title: 'この<ruby>先<rt>さき</rt></ruby>の１<ruby>年<rt>ねん</rt></ruby>で<ruby>何<rt>なん</rt></ruby>でもできるなら？',
+    items: ['<ruby>筋<rt>きん</rt></ruby>トレして<ruby>肉体<rt>にくたい</rt></ruby><ruby>改造<rt>かいぞう</rt></ruby>', '１<ruby>人<rt>り</rt></ruby><ruby>旅<rt>たび</rt></ruby>', '<ruby>有名<rt>ゆうめい</rt></ruby>な<ruby>温泉<rt>おんせん</rt></ruby>をめぐる', '<ruby>奇抜<rt>きばつ</rt></ruby>な<ruby>髪型<rt>かみがた</rt></ruby>・<ruby>髪色<rt>かみいろ</rt></ruby>に<ruby>挑戦<rt>ちょうせん</rt></ruby>', '<ruby>新<rt>あら</rt></ruby>たに<ruby>楽器<rt>がっき</rt></ruby>を<ruby>始<rt>はじ</rt></ruby>める', '<ruby>自炊<rt>じすい</rt></ruby>を<ruby>極<rt>きわ</rt></ruby>める']
   }
 ];
