@@ -444,6 +444,12 @@ const App: React.FC = () => {
               {gameState.mode === 'view' ? 'お題をながめる' : 'スタート！'}
               <PlayCircle size={28} />
             </button>
+
+            {gameState.mode === 'guess' && (
+              <p className="mt-4 text-red-500 text-center font-bold">
+                ※画面共有を停止してください
+              </p>
+            )}
           </div>
         </div>
         <ThemeSelectorModal
@@ -502,6 +508,7 @@ const App: React.FC = () => {
 
           {guessStep === 0 ? (
             <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border-4 border-purple-100 text-center space-y-8 animate-in zoom-in duration-500">
+              <p className="text-red-500 font-bold">※画面共有オフ</p>
               <div className="flex flex-col items-center">
                 <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center mb-6 ring-8 ring-purple-100/50">
                   <EyeOff size={48} className="text-purple-500" />
