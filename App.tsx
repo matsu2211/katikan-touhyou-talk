@@ -80,7 +80,6 @@ const App: React.FC = () => {
     currentPlayerIndex: 0,
     targetPlayerIndex: 0,
     isCompleted: false,
-    aiInsight: null,
     playerNames: [],
   });
 
@@ -89,6 +88,7 @@ const App: React.FC = () => {
   const [allPlayerRanks, setAllPlayerRanks] = useState<UserRank[]>([]);
   const [showCopyFeedback, setShowCopyFeedback] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [showRuby, setShowRuby] = useState(true);
   
   // For Guessing Mode: Step tracking (0: Target Input, 1: Group Guess)
   const [guessStep, setGuessStep] = useState<0 | 1>(0);
@@ -96,6 +96,8 @@ const App: React.FC = () => {
   const [timerMinutes, setTimerMinutes] = useState(1);
   const [timer, setTimer] = useState(timerMinutes * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [viewQuestion, setViewQuestion] = useState('自分のTOP3はどれ？');
+  const [guessQuestion, setGuessQuestion] = useState('自分のTOP3はどれ？');
 
   const getAlphabet = (index: number) => String.fromCharCode(65 + index);
 
@@ -129,7 +131,6 @@ const App: React.FC = () => {
       votes: [],
       currentPlayerIndex: 0,
       isCompleted: false,
-      aiInsight: null,
     }));
     
     setAllPlayerRanks(gameState.playerNames.map(() => ({ rank1: null, rank2: null, rank3: null })));
@@ -194,6 +195,14 @@ const App: React.FC = () => {
     setTimer(timerMinutes * 60);
   }, [guessStep]);
 
+  useEffect(() => {
+    if (showRuby) {
+      document.body.classList.remove('hide-ruby');
+    } else {
+      document.body.classList.add('hide-ruby');
+    }
+  }, [showRuby]);
+
   const toggleSelection = (playerIdx: number, item: string) => {
     const newRanks = [...allPlayerRanks];
     const current = newRanks[playerIdx];
@@ -202,8 +211,19 @@ const App: React.FC = () => {
     else if (current.rank2 === item) newRanks[playerIdx] = { ...current, rank2: null };
     else if (current.rank3 === item) newRanks[playerIdx] = { ...current, rank3: null };
     else if (!current.rank1) newRanks[playerIdx] = { ...current, rank1: item };
-    else if (!current.rank2) newRanks[playerIdx] = { ...current, rank2: item };
-    else if (!current.rank3) newRanks[playerIdx] = { ...current, rank3: item };
+    else if (!current.rank2) {
+      const isSingleMode = gameState.mode === 'guess' && (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？');
+      if (!isSingleMode) {
+        newRanks[playerIdx] = { ...current, rank2: item };
+      }
+    }
+    else if (!current.rank3) {
+      const isLimitedMode = gameState.mode === 'guess' && 
+        (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？' || guessQuestion === 'トップ1とワースト1はどれ？');
+      if (!isLimitedMode) {
+        newRanks[playerIdx] = { ...current, rank3: item };
+      }
+    }
     
     setAllPlayerRanks(newRanks);
   };
@@ -214,8 +234,19 @@ const App: React.FC = () => {
     else if (current.rank2 === item) setGroupGuess({ ...current, rank2: null });
     else if (current.rank3 === item) setGroupGuess({ ...current, rank3: null });
     else if (!current.rank1) setGroupGuess({ ...current, rank1: item });
-    else if (!current.rank2) setGroupGuess({ ...current, rank2: item });
-    else if (!current.rank3) setGroupGuess({ ...current, rank3: item });
+    else if (!current.rank2) {
+      const isSingleMode = gameState.mode === 'guess' && (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？');
+      if (!isSingleMode) {
+        setGroupGuess({ ...current, rank2: item });
+      }
+    }
+    else if (!current.rank3) {
+      const isLimitedMode = gameState.mode === 'guess' && 
+        (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？' || guessQuestion === 'トップ1とワースト1はどれ？');
+      if (!isLimitedMode) {
+        setGroupGuess({ ...current, rank3: item });
+      }
+    }
   };
 
   const handleFinalSubmit = async () => {
@@ -258,10 +289,22 @@ const App: React.FC = () => {
 
   const isPlayerComplete = (idx: number) => {
     const r = allPlayerRanks[idx];
-    return !!(r && r.rank1 && r.rank2 && r.rank3);
+    if (!r) return false;
+    if (gameState.mode === 'guess') {
+      if (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？') return !!r.rank1;
+      if (guessQuestion === 'トップ1とワースト1はどれ？') return !!(r.rank1 && r.rank2);
+    }
+    return !!(r.rank1 && r.rank2 && r.rank3);
   };
 
-  const isGuessComplete = !!(groupGuess.rank1 && groupGuess.rank2 && groupGuess.rank3);
+  const isGuessComplete = () => {
+    const r = groupGuess;
+    if (gameState.mode === 'guess') {
+      if (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？') return !!r.rank1;
+      if (guessQuestion === 'トップ1とワースト1はどれ？') return !!(r.rank1 && r.rank2);
+    }
+    return !!(r.rank1 && r.rank2 && r.rank3);
+  };
   const isAllComplete = allPlayerRanks.every((_, idx) => isPlayerComplete(idx));
 
   if (isSetupMode) {
@@ -273,7 +316,22 @@ const App: React.FC = () => {
               <Sparkles size={40} className="text-orange-500" />
             </div>
             <h1 className="text-4xl font-black text-gray-800 mb-2">ゆるっと<ruby>価値観<rt>かちかん</rt></ruby>トーク</h1>
-            <p className="text-gray-500 font-medium italic">みんなで<ruby>回<rt>まわ</rt></ruby>して、<ruby>価値観<rt>かちかん</rt></ruby>をシェア</p>
+            <p className="text-gray-500 font-medium italic mb-6">みんなで<ruby>回<rt>まわ</rt></ruby>して、<ruby>価値観<rt>かちかん</rt></ruby>をシェア</p>
+            
+            <div className="flex justify-center items-center gap-4 mb-4">
+              <label className="flex items-center cursor-pointer gap-3 bg-white px-5 py-2.5 rounded-2xl shadow-sm border-2 border-orange-50 hover:border-orange-100 transition-all">
+                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">ルビを表示</span>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={showRuby} 
+                    onChange={() => setShowRuby(!showRuby)} 
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                </div>
+              </label>
+            </div>
           </header>
 
           <div className="bg-white rounded-[2.5rem] shadow-xl p-8 border border-white/50 space-y-8">
@@ -283,14 +341,14 @@ const App: React.FC = () => {
                 className={`p-6 rounded-3xl border-4 transition-all flex flex-col items-center gap-3 ${gameState.mode === 'group' ? 'border-orange-400 bg-orange-50' : 'border-gray-50 bg-gray-50/30'}`}
               >
                 <Users size={28} className={gameState.mode === 'group' ? 'text-orange-500' : 'text-gray-300'} />
-                <span className="font-black text-sm text-gray-700">みんなでトーク</span>
+                <span className="font-black text-sm text-gray-700"><ruby>少人数<rt>しょうにんずう</rt></ruby>で</span>
               </button>
               <button 
                 onClick={() => setGameState(prev => ({ ...prev, mode: 'view' }))}
                 className={`p-6 rounded-3xl border-4 transition-all flex flex-col items-center gap-3 ${gameState.mode === 'view' ? 'border-sky-400 bg-sky-50' : 'border-gray-50 bg-gray-50/30'}`}
               >
                 <Eye size={28} className={gameState.mode === 'view' ? 'text-sky-500' : 'text-gray-300'} />
-                <span className="font-black text-sm text-gray-700">ながめる</span>
+                <span className="font-black text-sm text-gray-700">みんなで</span>
               </button>
               <button 
                 onClick={() => setGameState(prev => ({ ...prev, mode: 'guess', playerNames: ['プレイヤー1', 'プレイヤー2'], targetPlayerIndex: 0 }))}
@@ -349,6 +407,26 @@ const App: React.FC = () => {
                 <button onClick={() => setGameState(p => ({ ...p, playerNames: [...p.playerNames, `プレイヤー${p.playerNames.length + 1}`] }))} className="w-full py-4 border-4 border-dashed border-gray-100 rounded-3xl text-gray-400 font-bold hover:bg-gray-50 flex items-center justify-center gap-2 transition-all">
                   <Plus size={20} /> プレイヤーを<ruby>追加<rt>ついか</rt></ruby>
                 </button>
+              </div>
+            )}
+
+            {gameState.mode === 'guess' && (
+              <div className="space-y-4">
+                <label className="text-sm font-black text-gray-400 uppercase tracking-widest block ml-2"><ruby>推理<rt>すいり</rt></ruby>モード</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => setGuessQuestion('自分のTOP3はどれ？')}
+                    className={`p-4 rounded-2xl border-4 transition-all flex flex-col items-center gap-2 ${guessQuestion === '自分のTOP3はどれ？' ? 'border-purple-400 bg-purple-50 text-purple-900' : 'border-gray-50 bg-gray-50/30 text-gray-400'}`}
+                  >
+                    <span className="font-black text-sm">TOP3を<ruby>当<rt>あ</rt></ruby>てる</span>
+                  </button>
+                  <button 
+                    onClick={() => setGuessQuestion('トップ1とワースト1はどれ？')}
+                    className={`p-4 rounded-2xl border-4 transition-all flex flex-col items-center gap-2 ${guessQuestion === 'トップ1とワースト1はどれ？' ? 'border-purple-400 bg-purple-50 text-purple-900' : 'border-gray-50 bg-gray-50/30 text-gray-400'}`}
+                  >
+                    <span className="font-black text-sm">トップ1とワースト1を<ruby>当<rt>あ</rt></ruby>てる</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -430,7 +508,12 @@ const App: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-black text-gray-800 mb-2">{targetName}さん入力タイム</h3>
                 <p className="text-gray-500 font-bold leading-relaxed">
-                  {targetName}さんは<ruby>自分<rt>じぶん</rt></ruby>の<ruby>価値観<rt>かちかん</rt></ruby>TOP3を教えてください。
+                  {targetName}さんは
+                  {guessQuestion === '自分のTOP3はどれ？' ? (
+                    <><ruby>自分<rt>じぶん</rt></ruby>の<ruby>価値観<rt>かちかん</rt></ruby>TOP3を教えてください。</>
+                  ) : (
+                    <><ruby>自分<rt>じぶん</rt></ruby>のトップ1とワースト1を教えてください。</>
+                  )}
                 </p>
               </div>
 
@@ -449,7 +532,11 @@ const App: React.FC = () => {
                           <span className={`text-xs font-mono opacity-50 ${isSelected ? 'text-white' : ''}`}>{getAlphabet(i)}</span>
                           <RubyDisplay text={item} />
                         </span>
-                        {isSelected && <span className="w-6 h-6 bg-white text-purple-500 rounded-lg flex items-center justify-center text-xs font-black">{rank}</span>}
+                        {isSelected && (
+                          <span className="px-2 h-6 bg-white text-purple-500 rounded-lg flex items-center justify-center text-[10px] font-black">
+                            {guessQuestion === 'トップ1とワースト1はどれ？' ? (rank === 1 ? 'トップ' : 'ワースト') : rank}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -524,8 +611,16 @@ const App: React.FC = () => {
 
               <div className="bg-gray-50 p-6 rounded-3xl space-y-3">
                 {gameState.currentTheme?.items.map((item, i) => {
-                  const rank = [groupGuess.rank1, groupGuess.rank2, groupGuess.rank3].indexOf(item) + 1;
-                  const isSelected = rank > 0;
+                  const selectedItems = [groupGuess.rank1, groupGuess.rank2, groupGuess.rank3];
+                  const rankIndex = selectedItems.indexOf(item);
+                  const isSelected = rankIndex !== -1;
+
+                  let label = (rankIndex + 1).toString();
+                  if (guessQuestion === 'ワースト1はどれ？' && isSelected) label = 'ワースト';
+                  if (guessQuestion === 'トップ1とワースト1はどれ？' && isSelected) {
+                    label = rankIndex === 0 ? 'トップ' : 'ワースト';
+                  }
+
                   return (
                     <button 
                       key={i}
@@ -540,16 +635,16 @@ const App: React.FC = () => {
                         <span className="text-xs font-mono opacity-30">{getAlphabet(i)}</span>
                         <RubyDisplay text={item} />
                       </span>
-                      {isSelected && <span className="w-6 h-6 bg-purple-500 text-white rounded-lg flex items-center justify-center text-xs font-black">{rank}</span>}
+                      {isSelected && <span className="px-2 h-6 bg-purple-500 text-white rounded-lg flex items-center justify-center text-[10px] font-black">{label}</span>}
                     </button>
                   );
                 })}
               </div>
 
               <button 
-                disabled={!isGuessComplete}
+                disabled={!isGuessComplete()}
                 onClick={handleFinalSubmit}
-                className={`w-full py-6 rounded-[2rem] font-black text-xl flex items-center justify-center gap-3 transition-all ${isGuessComplete ? 'bg-purple-600 text-white shadow-xl hover:scale-105' : 'bg-gray-100 text-gray-300'}`}
+                className={`w-full py-6 rounded-[2rem] font-black text-xl flex items-center justify-center gap-3 transition-all ${isGuessComplete() ? 'bg-purple-600 text-white shadow-xl hover:scale-105' : 'bg-gray-100 text-gray-300'}`}
               >
                 <ruby>予想<rt>よそう</rt></ruby>を<ruby>確定<rt>かくてい</rt></ruby>して<ruby>正解<rt>せいかい</rt></ruby>を<ruby>見<rt>み</rt></ruby>る
                 <Trophy size={24} />
@@ -586,7 +681,18 @@ const App: React.FC = () => {
                   <h2 className="text-3xl font-black text-gray-800 leading-tight">
                     <RubyDisplay text={gameState.currentTheme?.title} />
                   </h2>
-                  <p className="text-gray-500 font-medium mt-2">自分のTOP3はどれ？　回答例：BDA</p>
+                  <div className="mt-4">
+                    <select 
+                      value={viewQuestion}
+                      onChange={(e) => setViewQuestion(e.target.value)}
+                      className="w-full max-w-xs p-3 rounded-xl bg-gray-50 border-2 border-transparent font-bold text-gray-700 outline-none focus:border-sky-300 focus:bg-white transition-all text-sm appearance-none cursor-pointer"
+                    >
+                      <option value="自分のTOP3はどれ？">自分のTOP3はどれ？</option>
+                      <option value="トップ1は？">トップ1は？</option>
+                      <option value="ワースト1は？">ワースト1は？</option>
+                      <option value="トップ1とワースト1はどれ？">トップ1とワースト1はどれ？</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button 
@@ -632,7 +738,7 @@ const App: React.FC = () => {
           </div>
           <footer className="mt-16 text-center">
               <p className="text-gray-300 text-[10px] font-black uppercase tracking-[0.5em]">
-                &copy; 2024 YURUTTO KACHIKAN TALK • Gemini Powered
+                &copy; 2024 YURUTTO KACHIKAN TALK
               </p>
           </footer>
         </div>
@@ -814,33 +920,60 @@ const App: React.FC = () => {
                   <div className="space-y-6">
                     <h3 className="text-center text-xs font-black text-purple-400 uppercase tracking-widest bg-purple-50 py-2 rounded-full"><ruby>本人<rt>ほんにん</rt></ruby>（{gameState.playerNames[gameState.targetPlayerIndex || 0]}）の<ruby>選択<rt>せんたく</rt></ruby></h3>
                     <div className="space-y-3">
-                      {[allPlayerRanks[gameState.targetPlayerIndex || 0].rank1, allPlayerRanks[gameState.targetPlayerIndex || 0].rank2, allPlayerRanks[gameState.targetPlayerIndex || 0].rank3].map((item, i) => (
-                        <div key={i} className="flex items-center gap-4 bg-gray-50 p-6 rounded-3xl border-2 border-transparent">
-                          <span className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white ${i === 0 ? 'bg-amber-400' : i === 1 ? 'bg-gray-400' : 'bg-orange-300'}`}>
-                            {i + 1}
-                          </span>
-                          <span className="font-black text-lg text-gray-800"><RubyDisplay text={item} /></span>
-                          {item === (i === 0 ? groupGuess.rank1 : i === 1 ? groupGuess.rank2 : groupGuess.rank3) && (
-                            <CheckCircle2 className="ml-auto text-green-500" size={24} />
-                          )}
-                        </div>
-                      ))}
+                      {[allPlayerRanks[gameState.targetPlayerIndex || 0].rank1, allPlayerRanks[gameState.targetPlayerIndex || 0].rank2, allPlayerRanks[gameState.targetPlayerIndex || 0].rank3]
+                        .filter((item, i) => {
+                          if (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？') return i === 0;
+                          if (guessQuestion === 'トップ1とワースト1はどれ？') return i < 2;
+                          return true;
+                        })
+                        .map((item, i) => {
+                          let label = (i + 1).toString();
+                          if (guessQuestion === 'ワースト1はどれ？') label = 'ワースト';
+                          if (guessQuestion === 'トップ1とワースト1はどれ？') label = i === 0 ? 'トップ' : 'ワースト';
+
+                          const groupItems = [groupGuess.rank1, groupGuess.rank2, groupGuess.rank3];
+                          const isMatch = item === groupItems[i];
+
+                          return (
+                            <div key={i} className="flex items-center gap-4 bg-gray-50 p-6 rounded-3xl border-2 border-transparent">
+                              <span className={`px-2 h-10 rounded-2xl flex items-center justify-center font-black text-white text-xs ${i === 0 ? 'bg-amber-400' : i === 1 ? 'bg-gray-400' : 'bg-orange-300'}`}>
+                                {label}
+                              </span>
+                              <span className="font-black text-lg text-gray-800"><RubyDisplay text={item} /></span>
+                              {isMatch && (
+                                <CheckCircle2 className="ml-auto text-green-500" size={24} />
+                              )}
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                   <div className="space-y-6">
                     <h3 className="text-center text-xs font-black text-gray-400 uppercase tracking-widest bg-gray-100 py-2 rounded-full">みんなの<ruby>予想<rt>よそう</rt></ruby></h3>
                     <div className="space-y-3">
-                      {[groupGuess.rank1, groupGuess.rank2, groupGuess.rank3].map((item, i) => {
-                        const isCorrect = item === (i === 0 ? allPlayerRanks[gameState.targetPlayerIndex || 0].rank1 : i === 1 ? allPlayerRanks[gameState.targetPlayerIndex || 0].rank2 : allPlayerRanks[gameState.targetPlayerIndex || 0].rank3);
-                        return (
-                          <div key={i} className={`flex items-center gap-4 p-6 rounded-3xl border-2 ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200 opacity-60'}`}>
-                            <span className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white ${i === 0 ? 'bg-amber-400' : i === 1 ? 'bg-gray-400' : 'bg-orange-300'}`}>
-                              {i + 1}
-                            </span>
-                            <span className="font-black text-lg text-gray-800"><RubyDisplay text={item} /></span>
-                          </div>
-                        );
-                      })}
+                      {[groupGuess.rank1, groupGuess.rank2, groupGuess.rank3]
+                        .filter((item, i) => {
+                          if (guessQuestion === 'トップ1はどれ？' || guessQuestion === 'ワースト1はどれ？') return i === 0;
+                          if (guessQuestion === 'トップ1とワースト1はどれ？') return i < 2;
+                          return true;
+                        })
+                        .map((item, i) => {
+                          let label = (i + 1).toString();
+                          if (guessQuestion === 'ワースト1はどれ？') label = 'ワースト';
+                          if (guessQuestion === 'トップ1とワースト1はどれ？') label = i === 0 ? 'トップ' : 'ワースト';
+
+                          const playerItems = [allPlayerRanks[gameState.targetPlayerIndex || 0].rank1, allPlayerRanks[gameState.targetPlayerIndex || 0].rank2, allPlayerRanks[gameState.targetPlayerIndex || 0].rank3];
+                          const isCorrect = item === playerItems[i];
+
+                          return (
+                            <div key={i} className={`flex items-center gap-4 p-6 rounded-3xl border-2 ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200 opacity-60'}`}>
+                              <span className={`px-2 h-10 rounded-2xl flex items-center justify-center font-black text-white text-xs ${i === 0 ? 'bg-amber-400' : i === 1 ? 'bg-gray-400' : 'bg-orange-300'}`}>
+                                {label}
+                              </span>
+                              <span className="font-black text-lg text-gray-800"><RubyDisplay text={item} /></span>
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 </div>
@@ -917,7 +1050,7 @@ const App: React.FC = () => {
 
         <footer className="mt-16 text-center">
           <p className="text-gray-300 text-[10px] font-black uppercase tracking-[0.5em]">
-            &copy; 2024 YURUTTO KACHIKAN TALK • Gemini Powered
+            &copy; 2024 YURUTTO KACHIKAN TALK
           </p>
         </footer>
       </div>
